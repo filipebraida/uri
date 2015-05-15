@@ -13,6 +13,7 @@ var CronJob = require('cron').CronJob;
 new CronJob('0 * * * * *', function() {
 	console.log('Rodando ZombieJS...');
 	uri_crawler();
+	uri_crawler2();
 	console.log('Resultado:' + rank_ufrrj);
 }, null, true, 'America/Los_Angeles');
 
@@ -36,18 +37,18 @@ var server = app.listen(3000, function () {
 
 
 function uri_crawler() {
-        my_browser = new Browser(); // Here's where you need to call new
-	url = "https://www.urionlinejudge.com.br/judge/en/universities/index/page:"
-	is_found = false;
+        var my_browser = new Browser(); // Here's where you need to call new
+	var url = "https://www.urionlinejudge.com.br/judge/en/universities/index/page:"
+	var is_found = false;
 
-	var page = 2;
+	var page = 1;
 	var last_page = 5;
 
 	(function loop() {
 	    if (page <= last_page && !is_found) {
                 my_browser.visit(url + page, function(e, browser) {
 	                assert.ok(my_browser.success);
-	                console.log("Page " + page);
+	                console.log("UPage " + page);
 	                var $ = my_browser.window.$;
 	                table = $('#element tr').each(function() {
 	                        var cellText = $(this).find(".acronym");
@@ -66,3 +67,32 @@ function uri_crawler() {
 	    }
 	}());
 }
+
+function uri_crawler2() {
+        var my_browser = new Browser(); // Here's where you need to call new
+        var url = "https://www.urionlinejudge.com.br/judge/en/rank/page:"
+
+        var page = 1;
+        var last_page = 20;
+
+        (function loop() {
+            if (page <= last_page) {
+                my_browser.visit(url + page, function(e, browser) {
+                        assert.ok(my_browser.success);
+                        console.log("APage " + page);
+                        var $ = my_browser.window.$;
+			$('#element tr td:nth-child(3)').each(function() {
+				if($(this).text().trim().indexOf("[UFRRJ]") == 0)
+				{
+					console.log($(this).text().trim());    
+					console.log($(this).closest('td').next().text().trim());
+				}
+			})
+
+                page++;
+                loop();
+                });
+            }
+        }());
+}
+
