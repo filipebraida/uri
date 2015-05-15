@@ -11,9 +11,9 @@ var rank_ufrrj = 500;
 
 var CronJob = require('cron').CronJob;
 new CronJob('0 * * * * *', function() {
-  console.log('Rodando ZombieJS...');
-  uri_crawler();
-  console.log('Resultado:' + rank_ufrrj);
+	console.log('Rodando ZombieJS...');
+	uri_crawler();
+	console.log('Resultado:' + rank_ufrrj);
 }, null, true, 'America/Los_Angeles');
 
 app.get('/uri', function (req, res) {
@@ -24,16 +24,14 @@ app.get('/uri', function (req, res) {
 });
 
 app.get('/', function (req, res) {
-  res.sendFile(path.join(__dirname + '/index.html'));
+	res.sendFile(path.join(__dirname + '/index.html'));
 });
 
 var server = app.listen(3000, function () {
+	var host = server.address().address;
+	var port = server.address().port;
 
-  var host = server.address().address;
-  var port = server.address().port;
-
-  console.log('Example app listening at http://%s:%s', host, port);
-
+	console.log('Example app listening at http://%s:%s', host, port);
 });
 
 
@@ -46,23 +44,24 @@ function uri_crawler() {
 	var last_page = 5;
 
 	(function loop() {
-	    if (page <= last_page || !is_found) {
+	    if (page <= last_page && !is_found) {
                 my_browser.visit(url + page, function(e, browser) {
-                assert.ok(my_browser.success);
-                console.log("Page " + page);
-                var $ = my_browser.window.$;
-                table = $('#element tr').each(function() {
-                        var cellText = $(this).find(".acronym");
+	                assert.ok(my_browser.success);
+	                console.log("Page " + page);
+	                var $ = my_browser.window.$;
+	                table = $('#element tr').each(function() {
+	                        var cellText = $(this).find(".acronym");
 
-                        if(cellText.text().trim() == "UFRRJ")
-                        {
-                                rank_ufrrj = $(this).children('td').slice(0, 1).text();
-                                console.log(rank_ufrrj);
-				is_found = true;
-                        }
-                   });;
-			page++;
-			loop();
+	                        if(cellText.text().trim() == "UFRRJ")
+	                        {
+	                                rank_ufrrj = $(this).children('td').slice(0, 1).text();
+	                                console.log(rank_ufrrj);
+					is_found = true;
+	                        }
+	                });
+	
+		page++;
+		loop();
                 });
 	    }
 	}());
