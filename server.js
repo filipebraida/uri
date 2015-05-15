@@ -12,7 +12,7 @@ var rank_ufrrj = 500;
 var CronJob = require('cron').CronJob;
 new CronJob('0 * * * * *', function() {
   console.log('Rodando ZombieJS...');
-  uri_crawler2();
+  uri_crawler();
   console.log('Resultado:' + rank_ufrrj);
 }, null, true, 'America/Los_Angeles');
 
@@ -37,15 +37,19 @@ var server = app.listen(3000, function () {
 });
 
 
-function uri_crawler2() {
+function uri_crawler() {
         my_browser = new Browser(); // Here's where you need to call new
 	url = "https://www.urionlinejudge.com.br/judge/en/universities/index/page:"
 	is_found = false;
 
-	forEach([3], function(item, index) {
-                my_browser.visit(url + item, function(e, browser) {
+	var page = 2;
+	var last_page = 5;
+
+	(function loop() {
+	    if (page <= last_page || !is_found) {
+                my_browser.visit(url + page, function(e, browser) {
                 assert.ok(my_browser.success);
-                console.log("Page " + item);
+                console.log("Page " + page);
                 var $ = my_browser.window.$;
                 table = $('#element tr').each(function() {
                         var cellText = $(this).find(".acronym");
@@ -54,10 +58,12 @@ function uri_crawler2() {
                         {
                                 rank_ufrrj = $(this).children('td').slice(0, 1).text();
                                 console.log(rank_ufrrj);
-                                return;
+				is_found = true;
                         }
                    });;
+			page++;
+			loop();
                 });
-	});
+	    }
+	}());
 }
-
