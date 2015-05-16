@@ -99,7 +99,7 @@ function uri_crawler_students() {
     var url = "https://www.urionlinejudge.com.br/judge/en/rank/page:"
 
     var page = 1;
-    var last_page = 200;
+    var last_page = 130;
 
     if(!is_work_crawler_students) {
         is_work_crawler_students = true;

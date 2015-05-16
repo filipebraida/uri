@@ -60,10 +60,10 @@
 
           <div id="students-tab" class="inner cover">
             <h1 class="cover-heading">Alunos</h1>
-            <table id="students" data-sort-name="problems" data-sort-order="desc">
+            <table id="students" data-sort-name="problems" data-sort-order="desc" data-pagination="true" data-page-size="5">
               <thead>
               <tr>
-                <th name="position" data-field="position" data-halign="center" data-align="center">#</th>
+                <th name="position" data-field="order" data-halign="center" data-align="center">#</th>
                 <th data-field="name" data-halign="center" data-align="left">Nome</th>
                 <th data-field="problems" data-halign="center" data-align="center">Problemas</th>
               </tr>
@@ -93,18 +93,36 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-table/1.7.0/bootstrap-table.min.js"></script>
 
     <script>
+var sort_by = function(field, reverse, primer){
+
+   var key = primer ? 
+       function(x) {return primer(x[field])} : 
+       function(x) {return x[field]};
+
+   reverse = !reverse ? 1 : -1;
+
+   return function (a, b) {
+       return a = key(a), b = key(b), reverse * ((a > b) - (b > a));
+     } 
+}
+
       $(document).ready(function() {
         $.ajax({
           type: 'GET',
           url: 'uri',
           success: function (data) {
             $('#rank').html(data["ufrrj"]);
-            $('#students').bootstrapTable({
-              data: data["students"]
-            });
-            var i = 1;
-            $('#students td:nth-child(1)').each(function () {
-              $(this).text(i++)
+	    data["students"].sort(sort_by('problems', true, parseInt));
+
+data3 = new Array();
+
+var i = 1;
+for(var x in data["students"]) {
+    data["students"][x]["order"] = i++;
+  data3.push(data["students"][x]);
+}
+ $('#students').bootstrapTable({
+              data: data3
             });
           }
          });
