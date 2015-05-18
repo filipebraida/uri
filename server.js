@@ -11,27 +11,30 @@ var path = require('path');
 var is_work_crawler_university = false;
 var is_work_crawler_students = false;
 
-var rank_ufrrj = 500;
-var students = new Object()
-
+students = {};
+var rank_ufrrj;
+var points_ufrrj;
+var total_students;
 var CronJob = require('cron').CronJob;
+
 new CronJob('0 * * * * *', function () {
     console.log('Rodando ZombieJS...');
     uri_crawler_university();
     uri_crawler_students();
-    console.log('Resultado:' + rank_ufrrj);
 }, null, true, 'America/Los_Angeles');
 
 app.get('/uri', function (req, res) {
     var estatistica = {};
     estatistica["ufrrj"] = rank_ufrrj;
-
-    var all_students = new Array();
+    estatistica["p_ufrrj"] = points_ufrrj;
+    estatistica["t_ufrrj"] = total_students;
+    var all_students = [];
 
     for (var value in students){
         var student = new Object();
-        student["name"] = value;
-        student["problems"] = students[value];
+        student["name"] = students[value].name;
+        student["problems"] = students[value].points;
+        student["profile"] = students[value].profile_link;
         all_students.push(student);
     }
     estatistica["students"] = all_students;
@@ -47,7 +50,7 @@ var server = app.listen(3000, function () {
     var host = server.address().address;
     var port = server.address().port;
 
-    console.log('Example app listening at http://%s:%s', host, port);
+    console.log('App listening at http://%s:%s', host, port);
 });
 
 
@@ -74,7 +77,9 @@ function uri_crawler_university() {
 
                                 if (cellText.text().trim() == "UFRRJ") {
                                     rank_ufrrj = $(this).children('td').slice(0, 1).text();
-                                    console.log(rank_ufrrj);
+                                    points_ufrrj = $(this).find(".tiny").text().trim();
+                                    total_students = $(this).find(".medium").eq(1).text().trim();;
+                                    console.log(rank_ufrrj+", "+points_ufrrj+", "+total_students);
                                     is_found = true;
                                 }
                             });
@@ -94,45 +99,38 @@ function uri_crawler_university() {
     }
 }
 
+//Top 10 of UFRRJ
 function uri_crawler_students() {
     var my_browser = new Browser(); // Here's where you need to call new
-    var url = "https://www.urionlinejudge.com.br/judge/en/rank/page:"
+    var url = "https://www.urionlinejudge.com.br/judge/pt/statistics/university/ufrrj";
+    var top = 10; //show only top 10 students
 
-    var page = 1;
-    var last_page = 130;
-
-    if(!is_work_crawler_students) {
-        is_work_crawler_students = true;
-
-        (function loop() {
-            if (page <= last_page) {
-                my_browser.visit(url + page, function (e, browser) {
-                    if (my_browser.success) {
-                        console.log("APage " + page);
-                        var $ = my_browser.window.$;
-                        if (!(typeof $ === 'undefined')) {
-                            $('#element tr td:nth-child(3)').each(function () {
-                                var name = $(this).text().trim();
-
-                                if (name.indexOf("[UFRRJ]") == 0) {
-                                    name = name.slice(8);
-                                    students[name] = $(this).closest('td').next().text().trim();
-                                    console.log(students);
-                                }
-                            });
-                        }
-                    }
-                    else {
-                        console.log("Error");
-                    }
-
-                    page++;
-                    loop();
+    my_browser.visit(url, function (e, browser) {
+        if (my_browser.success) {
+            var $ = my_browser.window.$;
+            
+            if (!(typeof $ === 'undefined')) {
+                var elem = $('table tr');
+                
+                elem.each(function(i){
+                	if(i>0 && i<=top){//skips i==0 -> table header
+                		var student = {
+                			name: $(this).find("a").text().trim(),
+                			points: $(this).find(".medium").eq(1).text().trim(),
+                			profile_link: $(this).find("a").attr("href"),
+                			general_rank: 0
+                		}
+                		students[i-1]=student;
+                	}
+                	if (i === top+1) {
+                		//console.log(students);
+                		return 0;
+                	}
                 });
-            } else {
-                is_work_crawler_students = false;
             }
-        }());
-    }
+        }
+        else {
+            console.log("Error");
+        }
+    });
 }
-
